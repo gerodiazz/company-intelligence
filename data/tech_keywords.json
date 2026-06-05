@@ -1,0 +1,8 @@
+{
+    "languages": ["Python", "Java", "Go", "Rust", "Node.js", "TypeScript", "C#", ".NET", "Kotlin", "Scala"],
+    "frameworks": ["React", "Angular", "Vue", "Django", "FastAPI", "Spring", "Next.js", "Express"],
+    "cloud": ["AWS", "GCP", "Azure", "Google Cloud", "Supabase", "Vercel", "Railway"],
+    "devops": ["Kubernetes", "Docker", "Terraform", "Jenkins", "GitHub Actions", "CI/CD"],
+    "databases": ["PostgreSQL", "MongoDB", "Redis", "MySQL", "BigQuery", "SQLite", "Pinecone"],
+    "ai_ml": ["LangChain", "LangGraph", "OpenAI", "LLM", "RAG", "TensorFlow", "PyTorch"]
+}
