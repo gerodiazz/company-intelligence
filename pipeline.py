@@ -5,13 +5,7 @@ from scrapers.news_scraper import get_company_news
 from models import TechnologyEvent, JobEvent, NewsEvent
 from datetime import date
 
-_cache = {}
-
-
 def analyze_company(company, url, github_org=None):
-    if company in _cache:
-        return _cache[company]
-
     web_tech = analize(url)
     job_tech = get_job_technologies(company)
     news = get_company_news(company)
@@ -43,12 +37,10 @@ def analyze_company(company, url, github_org=None):
             date=date.today()
         ))
 
-    result = {
+    return {
         "company": company,
         "events": [e.model_dump() for e in events]
     }
-    _cache[company] = result
-    return result
 
 if __name__ == "__main__":
     print(analyze_company("Stripe", "https://www.stripe.com", github_org="stripe"))

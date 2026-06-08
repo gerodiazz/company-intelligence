@@ -1,29 +1,55 @@
-
-from agent import agent
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from intelligence import generate_insights
-from pipeline import analyze_company
 
+from graph.builder import research_graph
+from db.client import supabase
 
 app = FastAPI()
 
-class Question(BaseModel):
-    question: str
 
-@app.get("/analyze")
-def analyze(company: str, url: str, github_org: str = None):
-    result = analyze_company(company, url, github_org)
-    insights = generate_insights(company, result["events"])
+class AnalyzeRequest(BaseModel):
+    company: str
+    url: str
+    github_org: str | None = None
+
+
+@app.post("/analyze")
+def analyze(body: AnalyzeRequest):
+    initial_state = {
+        "company": body.company,
+        "url": body.url,
+        "github_org": body.github_org,
+        "raw_events": [],
+        "insights": {},
+        "report": "",
+        "error": None,
+    }
+    result = research_graph.invoke(initial_state)
+    if result.get("error"):
+        raise HTTPException(status_code=500, detail=result["error"])
     return {
-        "company": company,
-        "events": result["events"],
-        "insights": insights
+        "company": result["company"],
+        "insights": result["insights"],
+        "report": result["report"],
     }
 
-@app.post("/ask")
-def ask(body: Question):
-    response = agent.invoke({
-        "messages": [("human", body.question)]
-    })
-    return {"answer": response["messages"][-1].content}
+
+@app.get("/reports")
+def list_reports():
+    response = supabase.table("reports").select("*").order("created_at", desc=True).execute()
+    return response.data
+
+
+@app.get("/reports/{company}")
+def get_report(company: str):
+    response = (
+        supabase.table("reports")
+        .select("*")
+        .eq("company", company)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    if not response.data:
+        raise HTTPException(status_code=404, detail=f"No report found for '{company}'")
+    return response.data[0]
